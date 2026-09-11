@@ -1,0 +1,100 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('work');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, client, role, timeline, tools, tags, date } = entry.data;
+
+const meta = [client, role, timeline].filter(Boolean).join(' · ');
+---
+
+<BaseLayout title={`${title} — Richie`}>
+  <main>
+    <a class="back" href="/">Back</a>
+    <h1 class="detail-title" transition:name={`title-${entry.id}`}>{title}</h1>
+    {meta && <p class="detail-meta">{meta}</p>}
+    <div class="prose">
+      <Content />
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .back {
+    display: inline-block;
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  .back:hover,
+  .back:focus-visible {
+    color: var(--accent);
+  }
+  .detail-title {
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .detail-meta {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin-top: 10px;
+    margin-bottom: 48px;
+  }
+  .prose :global(h2) {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    margin-top: 40px;
+    margin-bottom: 10px;
+  }
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .prose :global(p) {
+    font-size: 16px;
+    line-height: 1.65;
+    max-width: 64ch;
+  }
+  .prose :global(ol) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    list-style: none;
+    counter-reset: step;
+  }
+  .prose :global(ol li) {
+    counter-increment: step;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--accent-soft);
+    padding: 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .prose :global(ol li)::before {
+    content: counter(step, decimal-leading-zero);
+    font-weight: 900;
+    font-size: 14px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  @media (max-width: 480px) {
+    .detail-title {
+      font-size: 26px;
+    }
+  }
+</style>
