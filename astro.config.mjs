@@ -4,5 +4,5 @@ import { defineConfig } from 'astro/config';
 // HTML/CSS/JS folder in `dist/` that any static host (including
 // Hostinger's shared hosting) can serve as-is.
 export default defineConfig({
-  site: 'https://your-domain.com', // update once the domain is pointed here
+  site: 'https://rmstudxo.com',
 });
