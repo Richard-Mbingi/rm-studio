@@ -8,17 +8,14 @@ const entries = (await getCollection('work')).sort((a, b) => {
 });
 ---
 
-<BaseLayout title="Richie — Selected work">
-  <main>
-    <h1 class="section-title">Selected work</h1>
-    <div class="row-list">
+<BaseLayout title="RM Studio — Selected work">
+  <main class="home">
+    <h1 class="sr-only">Selected work</h1>
+    <div class="grid">
       {
         entries.map((entry) => (
-          <a class="row" href={`/work/${entry.id}/`}>
-            <span class="row-title" transition:name={`title-${entry.id}`}>
-              {entry.data.title}
-            </span>
-            <span class="row-meta">{entry.data.tags.join(' · ')}</span>
+          <a class="card" href={`/work/${entry.id}/`}>
+            <span class="sr-only">{entry.data.title}</span>
           </a>
         ))
       }
@@ -27,40 +24,39 @@ const entries = (await getCollection('work')).sort((a, b) => {
 </BaseLayout>
 
 <style>
-  .section-title {
-    font-weight: 700;
-    font-size: 17px;
-    margin-bottom: 8px;
-  }
-  .row-list {
-    margin-top: 48px;
-  }
-  .row {
+  .home {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 220px);
+  }
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: 24px;
-    width: 100%;
-    border-top: 1px solid var(--line);
-    padding: 26px 0;
   }
-  .row:last-child {
-    border-bottom: 1px solid var(--line);
+  .card {
+    display: block;
+    width: 160px;
+    aspect-ratio: 210 / 297;
+    background: var(--card-bg);
+    transition: background 0.15s ease;
   }
-  .row-title {
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
-    transition: color 0.15s ease;
+  .card:hover,
+  .card:focus-visible {
+    background: var(--card-bg-hover);
   }
-  .row-meta {
-    color: var(--ink-soft);
-    font-size: 14px;
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .row:hover .row-title,
-  .row:focus-visible .row-title {
-    color: var(--accent);
+    border: 0;
   }
 </style>

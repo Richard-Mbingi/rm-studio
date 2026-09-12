@@ -17,10 +17,10 @@ const { title, client, role, timeline, tools, tags, date } = entry.data;
 const meta = [client, role, timeline].filter(Boolean).join(' · ');
 ---
 
-<BaseLayout title={`${title} — Richie`}>
+<BaseLayout title={`${title} — RM Studio`}>
   <main>
     <a class="back" href="/">Back</a>
-    <h1 class="detail-title" transition:name={`title-${entry.id}`}>{title}</h1>
+    <h1 class="detail-title">{title}</h1>
     {meta && <p class="detail-meta">{meta}</p>}
     <div class="prose">
       <Content />
