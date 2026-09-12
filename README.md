@@ -13,11 +13,30 @@ npm run dev
 
 ## Adding a new case study
 
-Add a markdown file to `src/content/work/`, following the shape of the
-existing entries — frontmatter (`title`, `client`, `role`, `timeline`,
-`tools`, `tags`, `featured`, `date`) plus `## Problem`, `## Philosophy`,
-`## Solution`, `## Mockups` sections in the body. That's the whole
-workflow — no layout code to touch.
+Adding a project is "write one file" — no layout code to touch. Checklist:
+
+1. Create `src/content/work/<slug>.md`, where `<slug>` becomes the URL
+   (`/work/<slug>`).
+2. Fill in frontmatter (schema enforced in `src/content.config.ts`):
+   - `title` *(required)* — string
+   - `date` *(required)* — `YYYY-MM-DD`
+   - `client` — string
+   - `role` — string
+   - `timeline` — string
+   - `tools` — array, e.g. `["Figma"]`
+   - `tags` — array, e.g. `["Fintech", "Dashboard"]`
+   - `featured` — boolean, defaults to `false`
+   - `cover` — string path to a cover image; optional field exists in the
+     schema, but image handling/optimization isn't wired up yet (see the
+     mockup-image-handling task) — leave it out until that's decided.
+3. Write the body as four sections, in this order, matching every
+   existing entry:
+   - `## Problem`
+   - `## Philosophy`
+   - `## Solution`
+   - `## Mockups`
+4. Run `npm run dev` and check `/work/<slug>` renders, and that the new
+   entry shows up wherever the project grid lists work.
 
 ## Deploying to Hostinger
 
