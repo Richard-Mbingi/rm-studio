@@ -41,6 +41,7 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
       </div>
       <div class="case-title-row">
         <h1 class="case-title">{title}</h1>
+        <div class="case-thumb" aria-hidden="true" />
         <div class="case-summary">
           {tags.length > 0 && <p class="case-category">{tags.join(' · ')}</p>}
           <p class="case-description">{summary || meta}</p>
@@ -125,32 +126,43 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
   }
   .case-title-row {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 32px;
+    align-items: center;
+    gap: 64px;
     flex-wrap: wrap;
   }
   .case-title {
+    flex: 1 0 0;
+    min-width: 260px;
     font-family: 'Playfair Display', serif;
     font-weight: 400;
     font-size: clamp(40px, 6vw, 72px);
     line-height: 1.05;
     letter-spacing: -0.01em;
   }
+  .case-thumb {
+    flex-shrink: 0;
+    width: 320px;
+    max-width: 100%;
+    aspect-ratio: 210 / 297;
+    background: var(--card-bg);
+  }
   .case-summary {
+    flex: 1 0 0;
+    min-width: 220px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-width: 380px;
+    gap: 20px;
   }
   .case-category {
     color: var(--ink-soft);
     font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
   .case-description {
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 600;
     line-height: 1.5;
   }
 
@@ -297,8 +309,8 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
       flex-direction: column;
       align-items: flex-start;
     }
-    .case-summary {
-      max-width: none;
+    .case-thumb {
+      width: 180px;
     }
   }
 </style>
