@@ -30,8 +30,8 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
 <BaseLayout title={`${title} — RM Studio`} fullBleed>
   <div class="case">
     <nav class="case-nav">
-      <a class="case-mark" href="/">RM Studio</a>
-      <a class="case-nav-link" href="/">Index</a>
+      <a class="case-mark" href="/" transition:name="site-logo">RM Studio</a>
+      <a class="case-nav-link" href="/">Return to home</a>
     </nav>
 
     <header class="case-intro">
@@ -39,9 +39,9 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
         <span class="pill">Project Info</span>
         <span class="case-position">Project {projectNumber} / {totalNumber}</span>
       </div>
-      <div class="case-title-row">
-        <h1 class="case-title">{title}</h1>
-        <div class="case-thumb" aria-hidden="true" />
+      <div class="case-hero">
+        <h1 class="case-hero-title">{title}</h1>
+        <div class="case-thumb" transition:name={`thumb-${entry.id}`} aria-hidden="true" />
         <div class="case-summary">
           {tags.length > 0 && <p class="case-category">{tags.join(' · ')}</p>}
           <p class="case-description">{summary || meta}</p>
@@ -93,14 +93,12 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
     font-size: 14px;
   }
   .case-nav-link {
-    background: var(--border-default);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 14px;
+    font-size: 15px;
+    text-decoration: underline;
   }
   .case-nav-link:hover,
   .case-nav-link:focus-visible {
-    background: var(--border-strong);
+    color: var(--accent);
   }
 
   /* Intro */
@@ -124,15 +122,19 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
     color: var(--ink-soft);
     font-size: 12px;
   }
-  .case-title-row {
+  .case-hero {
     display: flex;
     align-items: center;
-    gap: 64px;
+    gap: 48px;
+    height: min(75vh, 700px);
     flex-wrap: wrap;
   }
-  .case-title {
+  .case-hero-title {
     flex: 1 0 0;
+    align-self: stretch;
     min-width: 260px;
+    display: flex;
+    align-items: flex-start;
     font-family: 'Playfair Display', serif;
     font-weight: 400;
     font-size: clamp(40px, 6vw, 72px);
@@ -141,9 +143,9 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
   }
   .case-thumb {
     flex-shrink: 0;
-    width: 320px;
-    max-width: 100%;
+    height: 100%;
     aspect-ratio: 210 / 297;
+    max-width: 100%;
     background: var(--card-bg);
   }
   .case-summary {
@@ -228,6 +230,7 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
     max-width: 800px;
     padding: 16px 32px 0;
     font-size: 16px;
+    font-weight: 700;
     line-height: 1.6;
   }
   .prose :global(h2:first-of-type + p) {
@@ -305,12 +308,17 @@ const meta = [client, role, timeline].filter(Boolean).join(' · ');
   }
 
   @media (max-width: 640px) {
-    .case-title-row {
+    .case-hero {
       flex-direction: column;
       align-items: flex-start;
+      height: auto;
+    }
+    .case-hero-title {
+      height: auto;
     }
     .case-thumb {
       width: 180px;
+      height: auto;
     }
   }
 </style>

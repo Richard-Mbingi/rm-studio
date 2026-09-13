@@ -23,6 +23,7 @@ const cardWidths = [140, 170, 150, 190, 130, 160];
             style={`width:${cardWidths[i % cardWidths.length]}px`}
             href={`/work/${entry.id}/`}
             data-caption={`${entry.data.title} — ${entry.data.tags.join(', ')}`}
+            transition:name={`thumb-${entry.id}`}
           >
             <span class="sr-only">{entry.data.title}</span>
           </a>
