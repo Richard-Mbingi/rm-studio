@@ -3,8 +3,14 @@ import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
+  /**
+   * Case-study pages (Figma "Project details" layout) supply their own
+   * full-width nav/footer chrome instead of the shared narrow `.wrap` +
+   * wordmark header used by the rest of the site.
+   */
+  fullBleed?: boolean;
 }
-const { title } = Astro.props;
+const { title, fullBleed = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -16,7 +22,7 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;900&family=Playfair+Display:ital@0;1&display=swap"
       rel="stylesheet"
     />
     <ClientRouter />
@@ -30,6 +36,9 @@ const { title } = Astro.props;
         --accent-soft: #eef1fc;
         --card-bg: #f3f4f6;
         --card-bg-hover: #e5e7eb;
+        --border-default: #e5e7eb;
+        --border-strong: #d1d5db;
+        --border-placeholder: #c9c9c3;
       }
       * {
         box-sizing: border-box;
@@ -69,14 +78,20 @@ const { title } = Astro.props;
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <header>
-        <a href="/">
-          <div class="name">RM Studio</div>
-          <div class="tag">Product &amp; UI design</div>
-        </a>
-      </header>
-      <slot />
-    </div>
+    {
+      fullBleed ? (
+        <slot />
+      ) : (
+        <div class="wrap">
+          <header>
+            <a href="/">
+              <div class="name">RM Studio</div>
+              <div class="tag">Product &amp; UI design</div>
+            </a>
+          </header>
+          <slot />
+        </div>
+      )
+    }
   </body>
 </html>

@@ -5,6 +5,7 @@ const work = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/work' }),
   schema: z.object({
     title: z.string(),
+    summary: z.string().optional(),
     client: z.string().optional(),
     role: z.string().optional(),
     timeline: z.string().optional(),

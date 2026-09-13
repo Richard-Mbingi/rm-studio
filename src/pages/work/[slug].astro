@@ -3,98 +3,302 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('work');
-  return entries.map((entry) => ({
+  const entries = (await getCollection('work')).sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    return b.data.date.valueOf() - a.data.date.valueOf();
+  });
+  return entries.map((entry, index) => ({
     params: { slug: entry.id },
-    props: { entry },
+    props: {
+      entry,
+      index,
+      total: entries.length,
+      next: entries.length > 1 ? entries[(index + 1) % entries.length] : null,
+    },
   }));
 }
 
-const { entry } = Astro.props;
+const { entry, index, total, next } = Astro.props;
 const { Content } = await render(entry);
-const { title, client, role, timeline, tools, tags, date } = entry.data;
+const { title, client, role, timeline, tags, summary } = entry.data;
 
+const projectNumber = String(index + 1).padStart(2, '0');
+const totalNumber = String(total).padStart(2, '0');
 const meta = [client, role, timeline].filter(Boolean).join(' · ');
 ---
 
-<BaseLayout title={`${title} — RM Studio`}>
-  <main>
-    <a class="back" href="/">Back</a>
-    <h1 class="detail-title">{title}</h1>
-    {meta && <p class="detail-meta">{meta}</p>}
+<BaseLayout title={`${title} — RM Studio`} fullBleed>
+  <div class="case">
+    <nav class="case-nav">
+      <a class="case-mark" href="/">RM Studio</a>
+      <a class="case-nav-link" href="/">Index</a>
+    </nav>
+
+    <header class="case-intro">
+      <div class="case-controls">
+        <span class="pill">Project Info</span>
+        <span class="case-position">Project {projectNumber} / {totalNumber}</span>
+      </div>
+      <div class="case-title-row">
+        <h1 class="case-title">{title}</h1>
+        <div class="case-summary">
+          {tags.length > 0 && <p class="case-category">{tags.join(' · ')}</p>}
+          <p class="case-description">{summary || meta}</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="media hero">
+      <img class="media-icon" src="/case-study/image-icon.svg" alt="" />
+      <p class="media-caption">{title} — Overview</p>
+    </div>
+
     <div class="prose">
       <Content />
     </div>
-  </main>
+
+    {
+      next && (
+        <a class="case-next" href={`/work/${next.id}/`}>
+          <span class="case-next-label">Next project</span>
+          <span class="case-next-title">{next.data.title} →</span>
+        </a>
+      )
+    }
+
+    <footer class="case-footer">
+      <p>© {new Date().getFullYear()} RM Studio</p>
+      <a href="#top">Back to top ↑</a>
+    </footer>
+  </div>
 </BaseLayout>
 
 <style>
-  .back {
-    display: inline-block;
-    color: var(--ink-soft);
-    font-size: 14px;
-    margin-bottom: 40px;
+  .case {
+    display: flex;
+    flex-direction: column;
   }
-  .back:hover,
-  .back:focus-visible {
-    color: var(--accent);
+
+  /* Nav */
+  .case-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border-default);
   }
-  .detail-title {
-    font-weight: 900;
-    font-size: 34px;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-  .detail-meta {
-    color: var(--ink-soft);
-    font-size: 15px;
-    margin-top: 10px;
-    margin-bottom: 48px;
-  }
-  .prose :global(h2) {
+  .case-mark {
     font-weight: 700;
     font-size: 14px;
-    color: var(--accent);
-    margin-top: 40px;
-    margin-bottom: 10px;
   }
-  .prose :global(h2:first-child) {
-    margin-top: 0;
+  .case-nav-link {
+    background: var(--border-default);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .case-nav-link:hover,
+  .case-nav-link:focus-visible {
+    background: var(--border-strong);
+  }
+
+  /* Intro */
+  .case-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding: 48px 32px;
+  }
+  .case-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pill {
+    background: var(--border-strong);
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .case-position {
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+  .case-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .case-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .case-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 380px;
+  }
+  .case-category {
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .case-description {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* Media placeholders */
+  .media {
+    background: var(--card-bg);
+    border: 1px solid var(--border-placeholder);
+    background-image: repeating-linear-gradient(
+      -33deg,
+      transparent 0,
+      transparent 38px,
+      var(--border-default) 38px,
+      var(--border-default) 39px
+    );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    overflow: hidden;
+  }
+  .media.hero {
+    height: min(70vh, 640px);
+  }
+  .media-icon {
+    width: 28px;
+    height: 28px;
+    opacity: 0.6;
+  }
+  .media-caption {
+    color: var(--ink-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Prose: Problem / Philosophy / Solution / Mockups */
+  .prose {
+    display: flex;
+    flex-direction: column;
+    counter-reset: phase;
+  }
+  .prose :global(h2) {
+    counter-increment: phase;
+    max-width: 800px;
+    padding: 48px 32px 0;
+    font-weight: 600;
+    font-size: 30px;
+  }
+  .prose :global(h2:first-of-type) {
+    counter-increment: none;
+    padding-top: 64px;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .prose :global(h2:not(:first-of-type))::before {
+    content: '0' counter(phase) ' — ';
   }
   .prose :global(p) {
+    max-width: 800px;
+    padding: 16px 32px 0;
     font-size: 16px;
-    line-height: 1.65;
-    max-width: 64ch;
+    line-height: 1.6;
   }
+  .prose :global(h2:first-of-type + p) {
+    padding-bottom: 48px;
+  }
+  .prose :global(h2:not(:first-of-type) + p) {
+    padding-bottom: 32px;
+  }
+
+  /* Mockups list rendered as a media gallery, matching the hero treatment */
   .prose :global(ol) {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 8px;
+    gap: 20px;
     list-style: none;
-    counter-reset: step;
+    padding: 0 32px 64px;
+    counter-reset: mockup;
   }
   .prose :global(ol li) {
-    counter-increment: step;
+    counter-increment: mockup;
+    height: 280px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-placeholder);
+    background-image: repeating-linear-gradient(
+      -33deg,
+      transparent 0,
+      transparent 38px,
+      var(--border-default) 38px,
+      var(--border-default) 39px
+    );
     display: flex;
     align-items: center;
-    gap: 16px;
-    background: var(--accent-soft);
-    padding: 20px;
-    border-radius: 4px;
-    font-size: 14px;
+    justify-content: center;
     color: var(--ink-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   .prose :global(ol li)::before {
-    content: counter(step, decimal-leading-zero);
-    font-weight: 900;
-    font-size: 14px;
-    color: var(--accent);
-    flex-shrink: 0;
+    content: none;
   }
-  @media (max-width: 480px) {
-    .detail-title {
-      font-size: 26px;
+
+  /* Next project */
+  .case-next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 64px 32px;
+    border-top: 1px solid var(--border-placeholder);
+  }
+  .case-next-label {
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .case-next-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+  }
+
+  /* Footer */
+  .case-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px;
+    border-top: 1px solid var(--border-placeholder);
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .case-footer a:hover,
+  .case-footer a:focus-visible {
+    color: var(--ink);
+  }
+
+  @media (max-width: 640px) {
+    .case-title-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .case-summary {
+      max-width: none;
     }
   }
 </style>

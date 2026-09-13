@@ -20,6 +20,8 @@ Adding a project is "write one file" — no layout code to touch. Checklist:
 2. Fill in frontmatter (schema enforced in `src/content.config.ts`):
    - `title` *(required)* — string
    - `date` *(required)* — `YYYY-MM-DD`
+   - `summary` — one or two sentence teaser shown on the case-study page,
+     distinct from the full `## Problem` write-up
    - `client` — string
    - `role` — string
    - `timeline` — string

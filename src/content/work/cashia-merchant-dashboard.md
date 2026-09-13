@@ -1,5 +1,6 @@
 ---
 title: "Project 1"
+summary: "Placeholder — a one- or two-sentence teaser distinct from the full Problem section below."
 client: "Cashia"
 role: "Product designer"
 timeline: ""
