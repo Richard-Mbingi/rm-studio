@@ -6,47 +6,73 @@ const entries = (await getCollection('work')).sort((a, b) => {
   if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
   return b.data.date.valueOf() - a.data.date.valueOf();
 });
+
+// Cycle through a few widths so the collage doesn't look uniform as more
+// case studies get added. Height follows from the fixed A4 aspect ratio.
+const cardWidths = [140, 170, 150, 190, 130, 160];
 ---
 
 <BaseLayout title="RM Studio — Selected work">
   <main class="home">
     <h1 class="sr-only">Selected work</h1>
-    <div class="grid">
+    <div class="scatter">
       {
-        entries.map((entry) => (
-          <a class="card" href={`/work/${entry.id}/`}>
+        entries.map((entry, i) => (
+          <a
+            class="scatter-card"
+            style={`width:${cardWidths[i % cardWidths.length]}px`}
+            href={`/work/${entry.id}/`}
+            data-caption={`${entry.data.title} — ${entry.data.tags.join(', ')}`}
+          >
             <span class="sr-only">{entry.data.title}</span>
           </a>
         ))
       }
     </div>
+    <p class="scatter-caption" aria-hidden="true">&nbsp;</p>
   </main>
 </BaseLayout>
 
 <style>
   .home {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     min-height: calc(100vh - 220px);
+    padding-top: 24px;
   }
-  .grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
+  .scatter {
+    position: relative;
+    width: 100%;
+    height: min(60vh, 560px);
   }
-  .card {
+  .scatter-card {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: block;
-    width: 160px;
     aspect-ratio: 210 / 297;
     background: var(--card-bg);
-    transition: background 0.15s ease;
+    will-change: transform;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
   }
-  .card:hover,
-  .card:focus-visible {
+  .scatter-card:hover,
+  .scatter-card:focus-visible {
     background: var(--card-bg-hover);
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.25);
+    z-index: 2;
+  }
+  .scatter-caption {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    min-height: 18px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .scatter-caption.visible {
+    opacity: 1;
   }
   .sr-only {
     position: absolute;
@@ -60,3 +86,147 @@ const entries = (await getCollection('work')).sort((a, b) => {
     border: 0;
   }
 </style>
+
+<script>
+  // Torn down and rebuilt on every astro:page-load so navigating away and
+  // back via view transitions doesn't stack up duplicate rAF loops /
+  // resize listeners each time.
+  let cleanup: (() => void) | null = null;
+
+  function initScatter() {
+    cleanup?.();
+    cleanup = null;
+
+    const container = document.querySelector<HTMLDivElement>('.scatter');
+    const caption = document.querySelector<HTMLParagraphElement>('.scatter-caption');
+    if (!container) return;
+
+    const cards = Array.from(container.querySelectorAll<HTMLAnchorElement>('.scatter-card'));
+    if (cards.length === 0) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    type CardState = {
+      baseX: number;
+      baseY: number;
+      repelX: number;
+      repelY: number;
+      phaseX: number;
+      phaseY: number;
+      freqX: number;
+      freqY: number;
+      ampX: number;
+      ampY: number;
+    };
+
+    const state: CardState[] = cards.map(() => ({
+      baseX: 0,
+      baseY: 0,
+      repelX: 0,
+      repelY: 0,
+      phaseX: Math.random() * Math.PI * 2,
+      phaseY: Math.random() * Math.PI * 2,
+      freqX: 0.15 + Math.random() * 0.1,
+      freqY: 0.15 + Math.random() * 0.1,
+      ampX: 10 + Math.random() * 14,
+      ampY: 10 + Math.random() * 14,
+    }));
+
+    // Scatter cards into a loose grid of cells, then jitter within each
+    // cell so nothing overlaps badly regardless of how many entries exist.
+    function layout() {
+      const rect = container!.getBoundingClientRect();
+      const count = cards.length;
+      const cols = Math.max(1, Math.round(Math.sqrt((count * rect.width) / rect.height)));
+      const rows = Math.ceil(count / cols);
+      const cellW = rect.width / cols;
+      const cellH = rect.height / rows;
+
+      cards.forEach((card, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const cw = card.offsetWidth;
+        const ch = card.offsetHeight;
+        const jitterX = (Math.random() - 0.5) * Math.max(cellW - cw, 0) * 0.6;
+        const jitterY = (Math.random() - 0.5) * Math.max(cellH - ch, 0) * 0.6;
+        const cx = cellW * col + cellW / 2 + jitterX;
+        const cy = cellH * row + cellH / 2 + jitterY;
+        state[i].baseX = Math.min(Math.max(cx - cw / 2, 0), Math.max(rect.width - cw, 0));
+        state[i].baseY = Math.min(Math.max(cy - ch / 2, 0), Math.max(rect.height - ch, 0));
+      });
+    }
+
+    layout();
+    window.addEventListener('resize', layout);
+    let rafId = 0;
+
+    let mouseX = -9999;
+    let mouseY = -9999;
+    container.addEventListener('mousemove', (e) => {
+      const rect = container!.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    });
+    container.addEventListener('mouseleave', () => {
+      mouseX = -9999;
+      mouseY = -9999;
+    });
+
+    const repelRadius = 140;
+    const repelStrength = 60;
+    let t = 0;
+
+    function tick() {
+      t += 0.016;
+      cards.forEach((card, i) => {
+        const s = state[i];
+        const wanderX = reduceMotion ? 0 : Math.sin(t * s.freqX * Math.PI + s.phaseX) * s.ampX;
+        const wanderY = reduceMotion ? 0 : Math.cos(t * s.freqY * Math.PI + s.phaseY) * s.ampY;
+
+        const cx = s.baseX + card.offsetWidth / 2;
+        const cy = s.baseY + card.offsetHeight / 2;
+        const dx = cx - mouseX;
+        const dy = cy - mouseY;
+        const dist = Math.hypot(dx, dy);
+
+        let targetRepelX = 0;
+        let targetRepelY = 0;
+        if (!reduceMotion && dist < repelRadius && dist > 0.01) {
+          const force = (1 - dist / repelRadius) * repelStrength;
+          targetRepelX = (dx / dist) * force;
+          targetRepelY = (dy / dist) * force;
+        }
+        s.repelX += (targetRepelX - s.repelX) * 0.08;
+        s.repelY += (targetRepelY - s.repelY) * 0.08;
+
+        const x = s.baseX + wanderX + s.repelX;
+        const y = s.baseY + wanderY + s.repelY;
+        card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      });
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+
+    cleanup = () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', layout);
+    };
+
+    cards.forEach((card) => {
+      card.addEventListener('mouseenter', () => {
+        if (!caption) return;
+        caption.textContent = card.dataset.caption ?? '';
+        caption.classList.add('visible');
+      });
+      card.addEventListener('mouseleave', () => {
+        caption?.classList.remove('visible');
+      });
+    });
+  }
+
+  // Astro's ClientRouter swaps the DOM on navigation without re-running
+  // this module (ES modules only execute once per URL), so re-init on
+  // astro:page-load instead of calling initScatter() directly — that
+  // event fires once on the very first load too.
+  document.addEventListener('astro:page-load', initScatter);
+</script>
